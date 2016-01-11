@@ -34,7 +34,9 @@ dependencies {
 
 dependencies {
     compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT'
-//    runtime 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT'
+    compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:macosx-x86_64'
+//    compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:linux-x86_64'
+//    compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:windows-x86_64'
 
 }
 
