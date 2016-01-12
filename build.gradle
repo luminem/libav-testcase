@@ -13,6 +13,8 @@ apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'application'
 
+import org.gradle.internal.os.OperatingSystem;
+
 // In this section you declare where to find the dependencies of your project
 repositories {
     mavenLocal()
@@ -34,8 +36,12 @@ dependencies {
 
 dependencies {
     compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT'
-    compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:macosx-x86_64'
-//    compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:linux-x86_64'
+    if (OperatingSystem.current().isMacOsX()) {
+        compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:macosx-x86_64'
+    }
+    if (OperatingSystem.current().isLinux()) {
+        compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:linux-x86_64'
+    }
 //    compile 'org.bytedeco.javacpp-presets:libav:12-1.2-SNAPSHOT:windows-x86_64'
 
 }
