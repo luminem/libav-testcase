@@ -8,14 +8,19 @@ import static org.bytedeco.javacpp.avutil.*;
 
 public class LibavFrameRecorder {
 
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+    private static void dummyVideo(String filename, String encoderName, String formatName) {
         int ret;
-        String filename = "output.mpeg";
         Loader.load(org.bytedeco.javacpp.avutil.class);
         Loader.load(org.bytedeco.javacpp.avcodec.class);
         av_register_all();
-        AVCodec codec = avcodec_find_encoder_by_name("mpeg2video");
-        AVOutputFormat format = av_guess_format("mpeg", null, null);
+        AVCodec codec = avcodec_find_encoder_by_name(encoderName);
+        if (codec == null) {
+            throw new RuntimeException("Bad encoder name: " + encoderName);
+        }
+        AVOutputFormat format = av_guess_format(formatName, null, null);
+        if (format == null) {
+            throw new RuntimeException("Bad format name: " + formatName);
+        }
         AVFormatContext oc = avformat_alloc_context();
         oc.filename().putString(filename);
         oc.oformat(format);
@@ -41,7 +46,7 @@ public class LibavFrameRecorder {
         av_dump_format(oc, 0, filename, 1);
 
         AVIOContext pb = new AVIOContext(null);
-        if ((ret = avio_open(pb, "output.mpeg", AVIO_FLAG_WRITE)) < 0) {
+        if ((ret = avio_open(pb, filename, AVIO_FLAG_WRITE)) < 0) {
             //release();
             throw new RuntimeException("avio_open error() error " + ret + ": Could not open '" + filename + "'");
         }
@@ -51,6 +56,33 @@ public class LibavFrameRecorder {
         if (ret < 0) {
             throw new RuntimeException("avformat_write_header() error " + ret);
         }
+
+        AVFrame frame = av_frame_alloc();
+        frame.format(c.pix_fmt());
+        frame.width(c.width());
+        frame.height(c.height());
+        av_frame_get_buffer(frame, 32);
+
+        frame.pts(0);
+
+        AVPacket pkt = av_packet_alloc();
+        for (int i=0;i<1000;i++) {
+            int[] gotPacket = {0};
+            avcodec_encode_video2(c, pkt, frame, gotPacket);
+            if (gotPacket[0] != 0) {
+                av_interleaved_write_frame(oc, pkt);
+            }
+            frame.pts(i);
+        }
+
+
+        av_write_trailer(oc);
+        //toc.close();
+    }
+
+    public static void main(String[] args) throws Exception {
+        dummyVideo("output.mpeg", "mpeg2video", "mpeg");
+        dummyVideo("output.mkv", "libx264", "matroska");
     }
 
 }
